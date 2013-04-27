@@ -1,0 +1,125 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://ogp.me/ns/fb#">
+<head>
+    <title>Insert Game Title Here</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+
+    <!-- TODO: Insert CSS Properies here if Neccessary -->
+
+    <!-- Insert Javascript Includes Here -->
+    <script type="text/javascript" src="js/RuleSet.js"></script>
+    <script type="text/javascript" src="js/Acropolis.Math/Math.js"></script>
+    <script type="text/javascript" src="js/Acropolis.Graphics/Frame.js"></script>
+    <script type="text/javascript" src="js/Acropolis.Graphics/Fill.js"></script>
+    <script type="text/javascript" src="js/Acropolis.Graphics/DrawingContextCanvas2D.js"></script>
+    <script type="text/javascript" src="js/Acropolis.Graphics/DrawingContextCanvas2DMatrix.js"></script>
+    <script type="text/javascript" src="js/Acropolis.Graphics/Sprite.js"></script>
+    <script type="text/javascript" src="js/GameEngine.js"></script>
+    <script type="text/javascript" src="js/CollisionManager.js"></script>
+    <script type="text/javascript" src="js/InputManager.js"></script>
+    <script type="text/javascript" src="js/SoundManager.js"></script>
+    <script type="text/javascript" src="js/ContentManager.js"></script>
+    <script type="text/javascript">
+        // Using statements for namespaces
+        var _gfx = Acropolis.Graphics;
+        var _math = Acropolis.Math;
+
+        // Polyfill for msRequestAnimationFrame
+        if (!window.msRequestAnimationFrame) {
+            window.msRequestAnimationFrame = function (f) {
+                window.setTimeout(f, 16);
+            }
+        }
+
+        // Global variables
+        var gameEngine = new LightShapeGameEngine();
+
+        function init() {
+            var mainCanvas = document.getElementById("mainCanvas");
+            mainCanvas.width = RuleSet.gameWidth;
+            mainCanvas.height = RuleSet.gameHeight;
+
+            var drawingContext = new _gfx.DrawingContextCanvas2DMatrix(mainCanvas.getContext("2d"));
+
+            gameEngine.drawingContext = drawingContext;
+            gameEngine.loadContent();
+            gameEngine.initLayers();
+            gameEngine.initCollisionManagers();
+
+            var tick = function () {
+                var startTick = (new Date()).getTime();
+
+                if (gameEngine.processCurrentState()) {
+                    drawingContext.beginDraw();
+                    gameEngine.rootSprite.draw(drawingContext, 0);
+                    drawingContext.endDraw();
+                }
+
+                gameEngine.frameTimes.push(new Date() - startTick);
+                if (gameEngine.frameTimes.length > 1000) {
+                    gameEngine.frameTimes.splice(0, 500);
+                }
+
+                window.msRequestAnimationFrame(tick);
+            }
+
+            InputManager.addEventListener("konamiCode", function (evt) {
+                RuleSet.powerupSpawnMultiplier = 0.01;
+                ScoreManager.codeUsed = true;
+            });
+            InputManager.addEventListener("edgeUI", function (evt) {
+                InstructionsBar.toggleUI();
+            });
+            InputManager.attach(document.body, mainCanvas);
+            window.msRequestAnimationFrame(tick);
+
+            // Load the Facebook SDK Asynchronously
+            (function (d) {
+                var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+                if (d.getElementById(id)) { return; }
+                js = d.createElement('script'); js.id = id; js.async = true;
+                js.src = "//connect.facebook.net/en_US/all.js";
+                ref.parentNode.insertBefore(js, ref);
+            }(document));
+        }
+
+        function postToTwitter() {
+            InstructionsBar.showSocialUI("DigiTec", "5000");
+        }
+    </script>
+</head>
+<body>
+    <div id="hostTable">
+        <div id="hostCell">
+            <canvas id="mainCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Faceboook -->
+    <div id="fb-root"></div>
+    <script>
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: '108580309292941', // App ID
+                channelUrl: '//naturalselectiongame.azurewebsites.net/channel.html', // Channel File
+                status: true, // check login status
+                cookie: true, // enable cookies to allow the server to access the session
+                xfbml: true  // parse XFBML
+            });
+        };
+    </script>
+
+    <!-- Twitter -->
+    <script>
+        !function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (!d.getElementById(id)) {
+                js = d.createElement(s);
+                js.id = id;
+                js.src = "//platform.twitter.com/widgets.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }
+        }(document, "script", "twitter-wjs");</script>
+    EDS
+</body>
+</html>
